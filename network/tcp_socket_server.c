@@ -1,10 +1,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 int main(int argc,char *argv[])
 {
     struct sockaddr_in addr;
-    struct sockaddr_in clent;
+    struct sockaddr_in client;
     addr.sin_family = AF_INET; //IPv4 Internet protocols
     addr.sin_port = htons(8080);  //设置端口
     addr.sin_addr.s_addr = inet_addr("0.0.0.0");  //设置地址
@@ -28,14 +29,15 @@ int main(int argc,char *argv[])
     }
     for (;;) {
         printf("accept start \n");
-        memset(&clent, 0, sizeof(clent));
-        lent = sizeof(clent);
-        int sockfd = accept(serverfd,(struct sockaddr *) &clent, &lent);
+        memset(&client, 0, sizeof(client));
+        lent = sizeof(client);
+        int sockfd = accept(serverfd,(struct sockaddr *) &client, &lent);
         if(sockfd < 0){
             printf("accept error %d \n", sockfd);
             return -1;
         }
-        printf("infor \n");
+        int client_port = ntohs(client.sin_port);
+        printf("accept success , client ip = %s , port = %d \n",inet_ntoa(client.sin_addr),client_port);
         //printf("clent addr%s porit %d\n",inet_ntop(AF_INET, &clent.sin_addr, buf, sizeof(buf)),ntohs(clent.sin_port));
 
 
