@@ -1,20 +1,30 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 
 int main(int argc,char *argv[])
 {
     struct sockaddr_in addr;
     struct sockaddr_in client;
     addr.sin_family = AF_INET; //IPv4 Internet protocols
-    addr.sin_port = htons(8080);  //ÉèÖÃ¶Ë¿Ú
-    addr.sin_addr.s_addr = inet_addr("0.0.0.0");  //ÉèÖÃµØÖ·
+    addr.sin_port = htons(8080);  //ï¿½ï¿½ï¿½Ã¶Ë¿ï¿½
+    addr.sin_addr.s_addr = inet_addr("0.0.0.0");  //ï¿½ï¿½ï¿½Ãµï¿½Ö·
     char buf[1024];
     socklen_t lent;
+    int opt;
+    socklen_t len=sizeof(int);
 
     int serverfd = socket(AF_INET,SOCK_STREAM,0);
     if (serverfd < 0) {
         printf("socket error \n");
+        return -1;
+    }
+
+    //è®¾ç½®socketé€‰é¡¹
+    int nodelay = 1;
+    if (setsockopt(serverfd,IPPROTO_TCP,TCP_NODELAY,(void*)&nodelay, sizeof(nodelay)) < 0){
+        printf("setsockopt error \n");
         return -1;
     }
     int bind_result = bind(serverfd,(struct sockaddr *)&addr,sizeof(struct sockaddr));
@@ -40,18 +50,25 @@ int main(int argc,char *argv[])
         printf("accept success , client ip = %s , port = %d \n",inet_ntoa(client.sin_addr),client_port);
         //printf("clent addr%s porit %d\n",inet_ntop(AF_INET, &clent.sin_addr, buf, sizeof(buf)),ntohs(clent.sin_port));
 
+        // è¯»å–socketé€‰é¡¹
+        if(getsockopt(sockfd,IPPROTO_TCP,TCP_NODELAY,(char*)&opt,&len) < 0){
+            printf("getsockopt error \n");
+            return -1;
+        };
+        printf("TCP_NODELAY Value: %d\n", opt);
+
 
         int pid = fork();
 
         if (pid == 0) {
-        //×Ó½ø³Ì
+        //ï¿½Ó½ï¿½ï¿½ï¿½
         close(serverfd);
         handle(sockfd);
         } else if (pid < 0) {
         //error
         close(sockfd);
         } else {
-        //¸¸½ø³Ì
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         }
     }
 
